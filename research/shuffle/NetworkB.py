@@ -180,27 +180,52 @@ class Network(nn.Module):
             nn.Conv2d(1024, 2048, kernel_size=3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(2048)
         )
+        # quick and dirty way to allow shuffling of blocks   TODO: allow for block insertion and deletion
         self.identityPath = nn.ModuleList([
             # downsampling gate
             self.gate,
-            # 64 input - 256 output (x3)
+            # 64 input - 256 output
             self.identity_bottleneck1, #1
             self.identity,
             self.identity,
-            # 256 input - 512 output (x4)
-            self.identity_bottleneck2, #4
-            self.identity,
-            self.identity,
-            self.identity,
-            # 512 input - 1024 output (x6)
-            self.identity_bottleneck3, #8
             self.identity,
             self.identity,
             self.identity,
             self.identity,
+            # 256 input - 512 output
+            self.identity_bottleneck2, #8
             self.identity,
-            # 1024 input - 2048 output (x3)
-            self.identity_bottleneck4, #14
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            # 512 input - 1024 output
+            self.identity_bottleneck3, #18
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
+            # 1024 input - 2048 output
+            self.identity_bottleneck4, #34
+            self.identity,
+            self.identity,
+            self.identity,
+            self.identity,
             self.identity,
             self.identity,
             # FC decoder
@@ -209,6 +234,11 @@ class Network(nn.Module):
 
         # declare plastic block infrastructure
         self.blocks = nn.ModuleDict()                   # {'output_index': ResidualBlock}       # ResBlock will have scalar & input
+
+        self.blocks['1'] = nn.ModuleList([ResNetBottleNeckBlock(64, int(256 / 4), 0, 2, 1).cuda()])
+        self.blocks['8'] = nn.ModuleList([ResNetBottleNeckBlock(256, int(512 / 4), 7, 2, 1).cuda()])
+        self.blocks['18'] = nn.ModuleList([ResNetBottleNeckBlock(512, int(1024 / 4), 17, 2, 1).cuda()])
+        self.blocks['34'] = nn.ModuleList([ResNetBottleNeckBlock(1024, int(2048 / 4), 33, 2, 1).cuda()])
 
         # declare variables
         self.prune_method = prune_method
@@ -240,7 +270,7 @@ class Network(nn.Module):
             if residual is not None:
                 t += residual
             # log output
-            self.outputs.append(t.clone())
+            self.outputs.append(t.clone())          # TODO: want better performing solution***
 
         # return predictions
         return t
@@ -262,8 +292,9 @@ class Network(nn.Module):
             outputIndex = None
 
             # selecting indecies
-            indexA = random.randrange(0, 16)
-            indexB = random.randrange(1, 17)
+            indexA = random.randrange(0, 38)
+            indexB = indexA + 1
+
             if indexA > indexB:
                 inputIndex = indexB
                 outputIndex = indexA
@@ -280,28 +311,32 @@ class Network(nn.Module):
                 #     inputIndex -= 1
                 #     outputIndex -= 1
             
+            # ensure no duplicates
+            if str(outputIndex) in self.blocks:
+                continue
+
             # calculate channels 
             in_channels = None
             out_channels = None
 
             if inputIndex == 0:
                 in_channels = 64
-            elif inputIndex <= 3:
-                in_channels = 256
             elif inputIndex <= 7:
+                in_channels = 256
+            elif inputIndex <= 17:
                 in_channels = 512
-            elif inputIndex <= 13:
+            elif inputIndex <= 33:
                 in_channels = 1024
-            elif inputIndex > 13:
+            elif inputIndex > 33:
                 in_channels = 2048
 
-            if outputIndex <= 3:
+            if outputIndex <= 7:
                 out_channels = 256
-            elif outputIndex <= 7:
+            elif outputIndex <= 17:
                 out_channels = 512
-            elif outputIndex <= 13:
+            elif outputIndex <= 33:
                 out_channels = 1024
-            elif outputIndex > 13:
+            elif outputIndex > 33:
                 out_channels = 2048
             
             # calculate downsampling & depth
@@ -312,11 +347,11 @@ class Network(nn.Module):
             bottlenecks_crossed = 0
             if 1 in span:
                 bottlenecks_crossed += 1
-            if 4 in span:
-                bottlenecks_crossed += 1
             if 8 in span:
                 bottlenecks_crossed += 1
-            if 14 in span:
+            if 18 in span:
+                bottlenecks_crossed += 1
+            if 34 in span:
                 bottlenecks_crossed += 1
 
             if bottlenecks_crossed == 0:
@@ -350,7 +385,7 @@ class Network(nn.Module):
                     del self.blocks[key]._modules[str(index)]
                     numPruned += 1
 
-        with open(r'D:\Machine Learning\PlasticNet\research\paths\outputs\log3.txt', 'a') as f:
+        with open(r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\log.txt', 'a') as f:
             f.write("Pruned " + str(numPruned) + " blocks" + '\n')
 
     def prune_lowest(self, prune_on):
@@ -367,7 +402,7 @@ class Network(nn.Module):
                 del modules[str(lowest_scalar[1])]
                 self.numBlocks -= 1
 
-                with open(r'D:\Machine Learning\PlasticNet\research\paths\outputs\plastic_gradients4.txt', 'a') as f:
+                with open(r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\plastic_gradients.txt', 'a') as f:
                     f.write("Pruned: " + str(lowest_scalar) + '\n')
 
     def prune_gradient(self, isPrune):
@@ -395,7 +430,7 @@ class Network(nn.Module):
 
         # print block gradient
         if not isPrune:
-            with open(r'D:\Machine Learning\PlasticNet\research\paths\outputs\plastic_gradients4.txt', 'a') as file:
+            with open(r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\plastic_gradients.txt', 'a') as file:
                 for key in gradients:
                     file.write(str(gradients[key]) + ":" + str(key))
                     file.write('\n')
@@ -411,7 +446,7 @@ class Network(nn.Module):
             del modules[index]
             self.numBlocks -= 1
 
-            with open(r'D:\Machine Learning\PlasticNet\research\paths\outputs\plastic_gradients3.txt', 'a') as file:
+            with open(r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\plastic_gradients.txt', 'a') as file:
                 file.write("block pruned: " + key + ", " + index + '\n')
 
 # import torch

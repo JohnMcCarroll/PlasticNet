@@ -53,6 +53,7 @@ class ResidualBlock(nn.Module):
     #     return self.in_channels != self.out_channels
 
 # ResNet Bottleneck block used to increase depth while reducing dimensionality. 1x1-3x3-1x1 with BN-relu after each.
+# ? where is self.downsampling defined ?
 class ResNetBottleNeckBlock(ResNet.ResNetResidualBlock):
     def __init__(self, in_channels, out_channels, inputIndex, downsampling, depth, *args, **kwargs):
         super().__init__(in_channels, out_channels, expansion=4, *args, **kwargs)
@@ -240,7 +241,7 @@ class Network(nn.Module):
             if residual is not None:
                 t += residual
             # log output
-            self.outputs.append(t.clone())
+            self.outputs.append(t.clone())          # TODO: want better performing solution***
 
         # return predictions
         return t
@@ -263,7 +264,8 @@ class Network(nn.Module):
 
             # selecting indecies
             indexA = random.randrange(0, 16)
-            indexB = random.randrange(1, 17)
+            indexB = indexA + 1
+
             if indexA > indexB:
                 inputIndex = indexB
                 outputIndex = indexA
@@ -280,6 +282,10 @@ class Network(nn.Module):
                 #     inputIndex -= 1
                 #     outputIndex -= 1
             
+            # ensure no duplicates
+            if str(outputIndex) in self.blocks:
+                continue
+
             # calculate channels 
             in_channels = None
             out_channels = None
@@ -350,7 +356,7 @@ class Network(nn.Module):
                     del self.blocks[key]._modules[str(index)]
                     numPruned += 1
 
-        with open(r'D:\Machine Learning\PlasticNet\research\paths\outputs\log3.txt', 'a') as f:
+        with open(r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\log.txt', 'a') as f:
             f.write("Pruned " + str(numPruned) + " blocks" + '\n')
 
     def prune_lowest(self, prune_on):
@@ -367,7 +373,7 @@ class Network(nn.Module):
                 del modules[str(lowest_scalar[1])]
                 self.numBlocks -= 1
 
-                with open(r'D:\Machine Learning\PlasticNet\research\paths\outputs\plastic_gradients4.txt', 'a') as f:
+                with open(r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\plastic_gradients.txt', 'a') as f:
                     f.write("Pruned: " + str(lowest_scalar) + '\n')
 
     def prune_gradient(self, isPrune):
@@ -395,7 +401,7 @@ class Network(nn.Module):
 
         # print block gradient
         if not isPrune:
-            with open(r'D:\Machine Learning\PlasticNet\research\paths\outputs\plastic_gradients4.txt', 'a') as file:
+            with open(r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\plastic_gradients.txt', 'a') as file:
                 for key in gradients:
                     file.write(str(gradients[key]) + ":" + str(key))
                     file.write('\n')
@@ -411,7 +417,7 @@ class Network(nn.Module):
             del modules[index]
             self.numBlocks -= 1
 
-            with open(r'D:\Machine Learning\PlasticNet\research\paths\outputs\plastic_gradients3.txt', 'a') as file:
+            with open(r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\plastic_gradients.txt', 'a') as file:
                 file.write("block pruned: " + key + ", " + index + '\n')
 
 # import torch

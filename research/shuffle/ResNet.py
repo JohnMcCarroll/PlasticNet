@@ -92,6 +92,7 @@ class ResNetBasicBlock(ResNetResidualBlock):
 
 
 # ResNet Bottleneck block used to increase depth while reducing dimensionality. 1x1-3x3-1x1 with BN-relu after each.
+# ? where is self.downsampling defined ?
 class ResNetBottleNeckBlock(ResNetResidualBlock):
     expansion = 4
     def __init__(self, in_channels, out_channels, *args, **kwargs):
@@ -153,7 +154,7 @@ class ResNetLayer(nn.Module):
             blockIndex += 1
 
 # ResNet Encoder that stacks ResNetLayers on top of eachother
-# how Bottleneck / depth changes handled / defined ?
+# ? how Bottleneck / depth changes handled / defined ?
 class ResNetEncoder(nn.Module):
     """
     ResNet encoder composed by layers with increasing features.

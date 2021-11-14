@@ -9,44 +9,64 @@ import gc
 
 import ResNet
 import Network
+import NetworkB
 
 
 ### The Gymnasium script loads or initializes a PlasticNet model and trains it for a specified number of epochs on a specified dataset
 # assay of tests
 learning_rate = [0.001, 0.0003, 0.0001]
-networks = ['resnet', 'plasticnet']
+networks = ['resnet', 'a', 'b']
 weight_decay = [0.0]
-prune_method = ['lowest', 'gradient']   #lowest_gradient?
+prune_method = ['lowest', 'gradient']   #lowest_gradient?\
+prune_freq = [500, 1000]
 
-logfile_path = r'D:\Machine Learning\PlasticNet\research\paths\outputs\logPlasticGRAD4.txt'
+logfile_path = r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\logPlasticGRAD.txt'
 
 
 for lr in learning_rate:
-    # for wd in weight_decay:
+    for net in networks:
+        # toggle network types
+        if net == 'resnet' or net == 'a':
+            prune_method = ['none']
+            prune_freq = [1]
+        if net == 'b':
+            prune_method = ['lowest', 'gradient']
+            prune_freq = [500, 1000]
+
         for pm in prune_method:
-        #     # toggle for prune_methods
-        #     prune_freq = None
-        #     if pm == 'lowest':
-        #         prune_freq = [200, 400, 800, 1600]
-        #     else:
-        #         prune_freq = [200]
-
-        #     for pf in prune_freq:
-
+            for pf in prune_freq:
                 ## setup
                 # initialize hyperparameters & variables
-                trial_desc = 'palstic50_' + 'lr' + str(lr) + '_' + pm #+ str(pf)
-                batchSize = 100
+                trial_desc = net + '50_lr' + str(lr) + '_pm' + pm
+                batchSize = 50
                 learningRate = lr
-                epoch = 25
+                epoch = 10
                 #test_set_size = 10000
                 dataset = list()
                 test_set = list()
 
+                isPrune = True
+                if pm == 'none':
+                    isPrune = False
+
                 # loading in network and data
                 # Creates new network
-                network = Network.Network(3, 10, 15, pm).cuda()
-                # network = ResNet.resnet50(3, 10).cuda()
+                network = None
+
+                if net == 'resnet':
+                    continue
+                    network = ResNet.resnet50(3, 10).cuda()
+                if net == 'a':
+                    continue
+                    network = Network.Network(3, 10, 15, pm).cuda()
+                if net == 'b':
+                    network = NetworkB.Network(3, 10, 15, pm).cuda()
+                
+                ### continue where left off ###
+                if net == 'resnet' and lr == 0.001:
+                    continue
+                if net == 'a' and lr == 0.001:
+                    continue
 
                     # retrieve dataset
                 # CIFAR
@@ -139,7 +159,8 @@ for lr in learning_rate:
                         # calculate and store test accuracy & gradients
                         if count % 30 == 0:
                             # calc gradients
-                            network.populate(prune_on=False)
+                            if isPrune:
+                                network.populate(prune_on=False)
 
                             # accuracy test
                             test_loss = 0
@@ -168,8 +189,8 @@ for lr in learning_rate:
                                     f.write('accuracy: ' + str(correct))
                                     f.write('\n')
 
-                        # # rewire network
-                        if count % 500 == 0:
+                        # rewire network
+                        if isPrune and count % pf == 0 and epoch < 9:
                             network.populate(prune_on=True)
 
                         count += 1
@@ -180,7 +201,7 @@ for lr in learning_rate:
                 plt.plot(test_losses)
                 plt.ylabel('test loss')
                 plt.xlabel('batch number')
-                plt.savefig(r'D:\Machine Learning\PlasticNet\research\paths\outputs\testloss_' + trial_desc + '.png')
+                plt.savefig(r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\testloss_' + trial_desc + '.png')
                 #plt.show()
 
                 # plt.plot(train_losses)
@@ -192,7 +213,7 @@ for lr in learning_rate:
                 plt.plot(test_accuracies)
                 plt.ylabel('test accuracy')
                 plt.xlabel('prediction number')
-                plt.savefig(r'D:\Machine Learning\PlasticNet\research\paths\outputs\testacc_' + trial_desc + '.png')
+                plt.savefig(r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\testacc_' + trial_desc + '.png')
 
                 # log run info
                 with open(logfile_path, 'a') as f:
@@ -202,6 +223,6 @@ for lr in learning_rate:
                 
 
                 ## save network
-                torch.save(network, r"D:\\Machine Learning\\PlasticNet\\research\\paths\\networks\\" + trial_desc)
+                torch.save(network, r"D:\\Machine Learning\\PlasticNet\\research\\shuffle\\networks\\" + trial_desc)
 
 # write out run data to a log file
