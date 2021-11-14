@@ -17,7 +17,7 @@ import NetworkB
 learning_rate = [0.001, 0.0003, 0.0001]
 networks = ['resnet', 'a', 'b']
 weight_decay = [0.0]
-prune_method = ['lowest', 'gradient']   #lowest_gradient?\
+prune_method = ['lowest', 'gradient']
 prune_freq = [500, 1000]
 
 logfile_path = r'D:\Machine Learning\PlasticNet\research\shuffle\outputs\logPlasticGRAD.txt'
