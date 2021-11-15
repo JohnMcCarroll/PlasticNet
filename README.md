@@ -54,11 +54,7 @@ $ source bin/activate
 ```
 Install dependencies:
 ```buildoutcfg
-$ pip install torch
-$ pip install torchvision
-$ pip install matplotlib
-$ pip install numpy
-$ pip install sortedcollections
+$ pip install -r requirements.txt
 ```
 Run training with a plastic ResNet:
 ```buildoutcfg
