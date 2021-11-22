@@ -1,9 +1,9 @@
-#PlasticNet
+# PlasticNet
 
 An exploration of experimental Convolutional Neural Network (CNN)
 architecture driven by my own curiosity.
 
-### Motivation
+## Motivation
 
 For any problem that haunts a modern engineer, evolution has had millennia to solve.
 For this reason, I'm excited about "biomimicry", or solutions that take inspiration
@@ -38,7 +38,7 @@ if dynamically adjusting the paths available to a Residual Neural Network could 
 just as had been the case in "Rigging the Lottery."
 
 
-### Setup
+## Setup
 
 Clone the repo to your local machine:
 ```buildoutcfg
@@ -61,7 +61,7 @@ Run training with a plastic ResNet:
 $ python research/shuffle/Gymnasium.py
 ```
 
-### Results
+## Results
 
 After a few iterations on the idea, which are encapsulated in the "path", "sequential", and "shuffle" directories
 and several experiment assays, it became clear that training time and performance were not significantly improved
