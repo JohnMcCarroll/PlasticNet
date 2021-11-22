@@ -10,9 +10,9 @@ For this reason, I'm excited about "biomimicry", or solutions that take inspirat
 from complex biological life. The domain of Machine Learning is no exception, in fact recent
 successes in the field often bare resemblance or were directly inspired by the manner in which
 the brain learns and performs. Fully connected layers (MLPs) and stochastic gradient descent (SGD) are loosely based on a network of
-neurons, CNNs filters are inspired by specialized cells in the visual cortex, 
+neurons, CNN's filters are inspired by specialized cells in the visual cortex, 
 and Reinforcement Learning (RL) training paradigms mimic the closed learning loop between
-intelligent systems, their environment, and the interactions between them.
+intelligent organisms, their environment, and the interactions between them.
 
 At the time I wrote this code, I was interested in leveraging neuroplasticity (the manner
 in which biological neurons strengthen some connections while pruning others) to
@@ -66,8 +66,7 @@ $ python research/shuffle/Gymnasium.py
 After a few iterations on the idea, which are encapsulated in the "path", "sequential", and "shuffle" directories
 and several experiment assays, it became clear that training time and performance were not significantly improved
 compared to the state of the art alternative, ResNet, of similar depth. All tests involved training and inference on the CIFAR-10.
-Although I feel there might be more work to do to exhaust this topic, it is my hypothesis that perhaps when operating in such a high
-dimensional space as the paths and parameters of a ResNet, there is no need to manually manage connections
+Although I feel there might be more work to do to exhaust this topic, it is my hypothesis that perhaps when operating in such a high dimensional space as the paths and parameters of a ResNet, there is no need to manually manage connections
 between blocks. When there's always room for further improvement (always a direction down the gradient), given high 
 dimensionality, one can reach similar performance by training longer as opposed to manually pruning and adding new paths.
 Essentially, the scale of the network mitigated the benefits of neuroplastic architecture search.
