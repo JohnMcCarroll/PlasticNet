@@ -56,6 +56,9 @@ Install dependencies:
 ```buildoutcfg
 $ pip install -r requirements.txt
 ```
+
+## Experimenting
+
 Run training with a plastic ResNet:
 ```buildoutcfg
 $ python research/shuffle/Gymnasium.py
